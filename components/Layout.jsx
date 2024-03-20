@@ -9,7 +9,6 @@ export default function Layout({ children }) {
     <>
       <Head>
         <title>Xclusive Realtors Inc.</title>
-        <p>Buy/Rent UAE Properties</p>
       </Head>
       <Box maxWidth="1280px" m="auto">
         <header>
