@@ -143,6 +143,7 @@ const PropertyDetails = ({
           )}
         </Flex>
       </Box>
+      <Box>contact us with property ID on :+2348059522376 </Box>
       <Flex justify="space-between" mt="4">
         <Button colorScheme="green" onClick={handleWhatsApp}>
           WhatsApp
