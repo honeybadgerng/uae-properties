@@ -24,6 +24,7 @@ const PropertyDetails = ({
     furnishingStatus,
     amenities,
     photos,
+    externalID,
   },
 }) => {
   const handleWhatsApp = () => {
@@ -35,7 +36,7 @@ const PropertyDetails = ({
   };
 
   const handleCallNow = () => {
-    window.location.href = "tel:0805952"; // Replace with your phone number
+    window.location.href = "tel:+2348059522376"; // Replace with your phone number
   };
 
   const handleSendEmail = () => {
@@ -47,12 +48,16 @@ const PropertyDetails = ({
       {photos && <ImageScrollbar data={photos} />}
       <Box w="full" p="6">
         <Flex paddingTop="2" alignItems="center">
+          <Text fontWeight="bold" fontSize="lg">
+            Property ID: {externalID}
+          </Text>
           <Box paddingRight="3" color="green.400">
             {isVerified && <GoVerified />}
           </Box>
           <Text fontWeight="bold" fontSize="lg">
             AED {millify(price)} {rentFrequency && `/${rentFrequency}`}
           </Text>
+
           <Spacer />
           <Avatar size="sm" src={agency?.logo?.url}></Avatar>
         </Flex>
