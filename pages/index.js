@@ -3,7 +3,11 @@ import Image from "next/image";
 import { Flex, Box, Text, Button } from "@chakra-ui/react";
 
 import Property from "../components/Property";
-import { baseUrl, fetchApi } from "../utils/fetchApi";
+import {
+  bayut16BaseUrl,
+  fetchApi,
+  normalizeProperties,
+} from "../utils/fetchApi";
 
 export const Banner = ({
   purpose,
@@ -16,7 +20,7 @@ export const Banner = ({
   imageUrl,
 }) => (
   <Flex flexWrap="wrap" justifyContent="center" alignItems="center" m="10">
-    <Image src={imageUrl} width={500} height={300} />
+    <Image src={imageUrl} alt={purpose} width={500} height={300} />
     <Box p="5">
       <Text color="gray.500" fontSize="sm" fontWeight="medium">
         {purpose}
@@ -90,21 +94,23 @@ export default function Home({
 
 export async function getStaticProps() {
   const propertyForSale = await fetchApi(
-    `${baseUrl}/properties/list?locationExternalIDs=5002&purpose=for-sale&hitsPerPage=6`
+    `${bayut16BaseUrl}/search-property?purpose=for-sale`,
+    "bayut16.p.rapidapi.com"
   );
   const propertyForRent = await fetchApi(
-    `${baseUrl}/properties/list?locationExternalIDs=5002&purpose=for-rent&hitsPerPage=6`
+    `${bayut16BaseUrl}/search-property?purpose=for-rent`,
+    "bayut16.p.rapidapi.com"
   );
 
   return {
     props: {
       propertiesForSale:
         propertyForSale.ok && Array.isArray(propertyForSale.data?.hits)
-          ? propertyForSale.data.hits
+          ? normalizeProperties(propertyForSale.data)
           : [],
       propertiesForRent:
         propertyForRent.ok && Array.isArray(propertyForRent.data?.hits)
-          ? propertyForRent.data.hits
+          ? normalizeProperties(propertyForRent.data)
           : [],
       error: propertyForSale.ok && propertyForRent.ok
         ? null

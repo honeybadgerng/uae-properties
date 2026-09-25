@@ -6,7 +6,11 @@ import { BsFilter } from "react-icons/bs";
 
 import Property from "../components/Property";
 import SearchFilters from "../components/SearchFilters";
-import { baseUrl, fetchApi } from "../utils/fetchApi";
+import {
+  bayut16BaseUrl,
+  fetchApi,
+  normalizeProperties,
+} from "../utils/fetchApi";
 import noresult from "../assets/images/noresult.svg";
 
 const Search = ({ properties, error }) => {
@@ -52,7 +56,7 @@ const Search = ({ properties, error }) => {
           marginTop="5"
           marginBottom="5"
         >
-          <Image src={noresult} />
+          <Image src={noresult} alt="No properties found" width={300} height={200} />
           <Text fontSize="xl" marginTop="3">
             No Result Found.
           </Text>
@@ -74,23 +78,63 @@ export async function getServerSideProps({ query }) {
   const locationExternalIDs = query.locationExternalIDs || "5002";
   const categoryExternalID = query.categoryExternalID || "4";
 
+  const params = new URLSearchParams({
+    purpose,
+    page: "1",
+    price_min: minPrice,
+    price_max: maxPrice,
+    area_max: areaMax,
+    location_ids: locationExternalIDs,
+  });
+
+  const propertyType = {
+    "4": "apartments",
+    "16": "townhouses",
+    "3": "villas",
+    "18": "penthouse",
+    "21": "hotel-apartments",
+    "19": "villa-compound",
+    "14": "residential-plots",
+    "12": "residential-floors",
+    "17": "residential-building",
+  }[categoryExternalID];
+
+  if (propertyType) {
+    params.set("property_type", propertyType);
+  }
+
+  if (roomsMin !== "0") {
+    params.set("rooms", roomsMin);
+  }
+
+  if (bathsMin !== "0") {
+    params.set("baths", bathsMin);
+  }
+
+  if (purpose === "for-rent") {
+    params.set("rent_frequency", rentFrequency);
+  }
+
+  const sortOrder = {
+    "price-asc": "lowest_price",
+    "price-des": "highest_price",
+    "date-asc": "latest",
+    "date-desc": "popular",
+    "verified-score": "verified",
+  }[sort];
+
+  if (sortOrder) {
+    params.set("sort_order", sortOrder);
+  }
+
   const data = await fetchApi(
-    `${baseUrl}/properties/list?locationExternalIDs=${encodeURIComponent(
-      locationExternalIDs
-    )}&purpose=${encodeURIComponent(purpose)}&categoryExternalID=${encodeURIComponent(
-      categoryExternalID
-    )}&bathsMin=${encodeURIComponent(bathsMin)}&rentFrequency=${encodeURIComponent(
-      rentFrequency
-    )}&minPrice=${encodeURIComponent(minPrice)}&maxPrice=${encodeURIComponent(
-      maxPrice
-    )}&roomsMin=${encodeURIComponent(roomsMin)}&sort=${encodeURIComponent(
-      sort
-    )}&areaMax=${encodeURIComponent(areaMax)}`
+    `${bayut16BaseUrl}/search-property?${params.toString()}`,
+    "bayut16.p.rapidapi.com"
   );
 
   return {
     props: {
-      properties: data.ok && Array.isArray(data.data?.hits) ? data.data.hits : [],
+      properties: data.ok ? normalizeProperties(data.data) : [],
       error: data.ok ? null : data.error,
     },
   };

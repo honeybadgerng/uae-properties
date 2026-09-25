@@ -5,7 +5,11 @@ import { BsGridFill } from "react-icons/bs";
 import { GoVerified } from "react-icons/go";
 import millify from "millify";
 
-import { baseUrl, fetchApi } from "../../utils/fetchApi";
+import {
+  baseUrl,
+  fetchApi,
+  normalizeProperty,
+} from "../../utils/fetchApi";
 import ImageScrollbar from "../../components/ImageScrollbar";
 
 const PropertyDetails = ({
@@ -173,7 +177,9 @@ export async function getServerSideProps({ params: { id } }) {
   return {
     props: {
       propertyDetails:
-        data.ok && data.data && !Array.isArray(data.data) ? data.data : null,
+        data.ok && data.data && !Array.isArray(data.data)
+          ? normalizeProperty(data.data)
+          : null,
       error: data.error,
     },
   };
