@@ -5,11 +5,28 @@ import { BsGridFill } from "react-icons/bs";
 import { GoVerified } from "react-icons/go";
 import millify from "millify";
 
-import { baseUrl, fetchApi } from "../../utils/fetchApi";
+import {
+  bayut16BaseUrl,
+  fetchApi,
+  normalizeProperty,
+} from "../../utils/fetchApi";
 import ImageScrollbar from "../../components/ImageScrollbar";
 
 const PropertyDetails = ({
-  propertyDetails: {
+  propertyDetails,
+  error,
+}) => {
+  if (error || !propertyDetails) {
+    return (
+      <Box maxWidth="1000px" margin="auto" p="4">
+        <Text color="gray.600">
+          {error || "Property details are temporarily unavailable."}
+        </Text>
+      </Box>
+    );
+  }
+
+  const {
     price,
     rentFrequency,
     rooms,
@@ -22,30 +39,16 @@ const PropertyDetails = ({
     type,
     purpose,
     furnishingStatus,
-    amenities,
-    photos,
+    amenities = [],
+    photos = [],
     externalID,
-  },
-}) => {
-  const handleWhatsApp = () => {
-    const url = encodeURIComponent(window.location.href);
-    const message = encodeURIComponent(
-      "I would like to inquire about this property: " + url
-    );
-    window.open(`https://wa.me/?text=${message}`);
-  };
-
-  const handleCallNow = () => {
-    window.location.href = "tel:+2348059522376"; // Replace with your phone number
-  };
-
-  const handleSendEmail = () => {
-    window.location.href = "mailto:connect@realtor.com";
-  };
+  } = propertyDetails;
 
   return (
     <Box maxWidth="1000px" margin="auto" p="4">
-      {photos && <ImageScrollbar data={photos} />}
+      {Array.isArray(photos) && photos.length > 0 && (
+        <ImageScrollbar data={photos} />
+      )}
       <Box w="full" p="6">
         <Flex paddingTop="2" alignItems="center">
           <Text fontWeight="bold" fontSize="lg">
@@ -55,7 +58,8 @@ const PropertyDetails = ({
             {isVerified && <GoVerified />}
           </Box>
           <Text fontWeight="bold" fontSize="lg">
-            AED {millify(price)} {rentFrequency && `/${rentFrequency}`}
+            AED {price != null ? millify(price) : "Price unavailable"}{" "}
+            {rentFrequency && `/${rentFrequency}`}
           </Text>
 
           <Spacer />
@@ -68,16 +72,17 @@ const PropertyDetails = ({
           w="250px"
           color="blue.400"
         >
-          {rooms}
-          <FaBed /> | {baths} <FaBath /> | {millify(area)} sqft <BsGridFill />
+          {rooms ?? "-"}
+          <FaBed /> | {baths ?? "-"} <FaBath /> |{" "}
+          {area != null ? millify(area) : "-"} sqft <BsGridFill />
         </Flex>
       </Box>
       <Box marginTop="2">
         <Text fontSize="lg" marginBottom="2" fontWeight="bold">
-          {title}
+          {title || "Property title unavailable"}
         </Text>
         <Text lineHeight="2" color="gray.600">
-          {description}
+          {description || "Property description unavailable."}
         </Text>
       </Box>
       <Flex
@@ -93,7 +98,7 @@ const PropertyDetails = ({
           p="3"
         >
           <Text>Type</Text>
-          <Text fontWeight="bold">{type}</Text>
+          <Text fontWeight="bold">{type || "-"}</Text>
         </Flex>
         <Flex
           justifyContent="space-between"
@@ -103,7 +108,7 @@ const PropertyDetails = ({
           p="3"
         >
           <Text>Purpose</Text>
-          <Text fontWeight="bold">{purpose}</Text>
+          <Text fontWeight="bold">{purpose || "-"}</Text>
         </Flex>
         {furnishingStatus && (
           <Flex
@@ -114,18 +119,18 @@ const PropertyDetails = ({
             p="3"
           >
             <Text>Furnishing Status</Text>
-            <Text fontWeight="bold">{furnishingStatus}</Text>
+            <Text fontWeight="bold">{furnishingStatus || "-"}</Text>
           </Flex>
         )}
       </Flex>
       <Box>
-        {amenities.length && (
+        {Array.isArray(amenities) && amenities.length > 0 && (
           <Text fontSize="2xl" fontWeight="black" marginTop="5">
             Facilites:
           </Text>
         )}
         <Flex flexWrap="wrap">
-          {amenities?.map((item) =>
+          {amenities.map((item) =>
             item?.amenities?.map((amenity) => (
               <Text
                 key={amenity.text}
@@ -143,15 +148,18 @@ const PropertyDetails = ({
           )}
         </Flex>
       </Box>
-      <Box>contact us with property ID on :+2348059522376 </Box>
+      <Box color="gray.600">
+        Contact actions are temporarily unavailable. Please use the property ID
+        when contacting us through the configured internal channel.
+      </Box>
       <Flex justify="space-between" mt="4">
-        <Button colorScheme="green" onClick={handleWhatsApp}>
+        <Button colorScheme="green" isDisabled>
           WhatsApp
         </Button>
-        <Button colorScheme="blue" onClick={handleCallNow}>
+        <Button colorScheme="blue" isDisabled>
           Call Now
         </Button>
-        <Button colorScheme="orange" onClick={handleSendEmail}>
+        <Button colorScheme="orange" isDisabled>
           Send Email
         </Button>
       </Flex>
@@ -162,11 +170,18 @@ const PropertyDetails = ({
 export default PropertyDetails;
 
 export async function getServerSideProps({ params: { id } }) {
-  const data = await fetchApi(`${baseUrl}/properties/detail?externalID=${id}`);
+  const data = await fetchApi(
+    `${bayut16BaseUrl}/property-details?external_id=${encodeURIComponent(id)}`,
+    "bayut16.p.rapidapi.com"
+  );
 
   return {
     props: {
-      propertyDetails: data,
+      propertyDetails:
+        data.ok && data.data?.data && !Array.isArray(data.data.data)
+          ? normalizeProperty(data.data.data)
+          : null,
+      error: data.error,
     },
   };
 }

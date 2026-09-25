@@ -23,7 +23,7 @@ const Property = ({
     externalID,
   },
 }) => (
-  <Link href={`/property/${externalID}`} passHref>
+  <Link href={externalID ? `/property/${externalID}` : "#"} passHref>
     <Flex
       flexWrap="wrap"
       w="420px"
@@ -34,6 +34,7 @@ const Property = ({
     >
       <Box>
         <Image
+          alt={title || "Property"}
           src={coverPhoto ? coverPhoto.url : DefaultImage}
           width={400}
           height={260}
@@ -46,7 +47,7 @@ const Property = ({
               {isVerified && <GoVerified />}
             </Box>
             <Text fontWeight="bold" fontSize="lg">
-              AED {millify(price)}
+              AED {price != null ? millify(price) : "Price unavailable"}
               {rentFrequency && `/${rentFrequency}`}
             </Text>
           </Flex>
@@ -62,10 +63,15 @@ const Property = ({
           color="blue.400"
         >
           {rooms}
-          <FaBed /> | {baths} <FaBath /> | {millify(area)} sqft <BsGridFill />
+          <FaBed /> | {baths ?? "-"} <FaBath /> |{" "}
+          {area != null ? millify(area) : "-"} sqft <BsGridFill />
         </Flex>
         <Text fontSize="lg">
-          {title.length > 30 ? title.substring(0, 30) + "..." : title}
+          {title
+            ? title.length > 30
+              ? title.substring(0, 30) + "..."
+              : title
+            : "Property details unavailable"}
         </Text>
       </Box>
     </Flex>
