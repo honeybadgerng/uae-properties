@@ -6,7 +6,7 @@ import { GoVerified } from "react-icons/go";
 import millify from "millify";
 
 import {
-  baseUrl,
+  bayut16BaseUrl,
   fetchApi,
   normalizeProperty,
 } from "../../utils/fetchApi";
@@ -171,14 +171,15 @@ export default PropertyDetails;
 
 export async function getServerSideProps({ params: { id } }) {
   const data = await fetchApi(
-    `${baseUrl}/properties/detail?externalID=${encodeURIComponent(id)}`
+    `${bayut16BaseUrl}/property-details?external_id=${encodeURIComponent(id)}`,
+    "bayut16.p.rapidapi.com"
   );
 
   return {
     props: {
       propertyDetails:
-        data.ok && data.data && !Array.isArray(data.data)
-          ? normalizeProperty(data.data)
+        data.ok && data.data?.data && !Array.isArray(data.data.data)
+          ? normalizeProperty(data.data.data)
           : null,
       error: data.error,
     },
