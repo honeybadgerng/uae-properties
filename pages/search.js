@@ -9,7 +9,7 @@ import SearchFilters from "../components/SearchFilters";
 import { baseUrl, fetchApi } from "../utils/fetchApi";
 import noresult from "../assets/images/noresult.svg";
 
-const Search = ({ properties }) => {
+const Search = ({ properties, error }) => {
   const [searchFilters, setSearchFilters] = useState(false);
   const router = useRouter();
 
@@ -34,6 +34,11 @@ const Search = ({ properties }) => {
       <Text fontSize="2xl" p="4" fontWeight="bold">
         Properties {router.query.purpose}
       </Text>
+      {error && (
+        <Text color="gray.600" px="4">
+          {error}
+        </Text>
+      )}
       <Flex flexWrap="wrap">
         {properties.map((property) => (
           <Property property={property} key={property.id} />
@@ -70,12 +75,23 @@ export async function getServerSideProps({ query }) {
   const categoryExternalID = query.categoryExternalID || "4";
 
   const data = await fetchApi(
-    `${baseUrl}/properties/list?locationExternalIDs=${locationExternalIDs}&purpose=${purpose}&categoryExternalID=${categoryExternalID}&bathsMin=${bathsMin}&rentFrequency=${rentFrequency}&priceMin=${minPrice}&priceMax=${maxPrice}&roomsMin=${roomsMin}&sort=${sort}&areaMax=${areaMax}`
+    `${baseUrl}/properties/list?locationExternalIDs=${encodeURIComponent(
+      locationExternalIDs
+    )}&purpose=${encodeURIComponent(purpose)}&categoryExternalID=${encodeURIComponent(
+      categoryExternalID
+    )}&bathsMin=${encodeURIComponent(bathsMin)}&rentFrequency=${encodeURIComponent(
+      rentFrequency
+    )}&minPrice=${encodeURIComponent(minPrice)}&maxPrice=${encodeURIComponent(
+      maxPrice
+    )}&roomsMin=${encodeURIComponent(roomsMin)}&sort=${encodeURIComponent(
+      sort
+    )}&areaMax=${encodeURIComponent(areaMax)}`
   );
 
   return {
     props: {
-      properties: data?.hits,
+      properties: data.ok && Array.isArray(data.data?.hits) ? data.data.hits : [],
+      error: data.ok ? null : data.error,
     },
   };
 }

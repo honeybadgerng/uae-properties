@@ -14,7 +14,6 @@ import { MdCancel } from "react-icons/md";
 import Image from "next/image";
 
 import { filterData, getFilterValues } from "../utils/filterData";
-import { baseUrl, fetchApi } from "../utils/fetchApi";
 import noresult from "../assets/images/noresult.svg";
 
 export default function SearchFilters() {
@@ -41,18 +40,37 @@ export default function SearchFilters() {
   };
 
   useEffect(() => {
-    if (searchTerm !== "") {
-      const fetchData = async () => {
-        setLoading(true);
-        const data = await fetchApi(
-          `${baseUrl}/auto-complete?query=${searchTerm}`
-        );
-        setLoading(false);
-        setLocationData(data?.hits);
-      };
-
-      fetchData();
+    if (!searchTerm.trim()) {
+      setLocationData([]);
+      setLoading(false);
+      return undefined;
     }
+
+    const controller = new AbortController();
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `/api/locations?query=${encodeURIComponent(searchTerm.trim())}`,
+          { signal: controller.signal }
+        );
+        const result = await response.json();
+        setLocationData(
+          result.ok && Array.isArray(result.data?.hits) ? result.data.hits : []
+        );
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          setLocationData([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+    return () => controller.abort();
   }, [searchTerm]);
 
   return (
@@ -93,7 +111,7 @@ export default function SearchFilters() {
               focusBorderColor="gray.300"
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            {searchTerm !== "" && (
+            {searchTerm.trim() !== "" && (
               <Icon
                 as={MdCancel}
                 pos="absolute"
@@ -109,7 +127,7 @@ export default function SearchFilters() {
               <Box height="300px" overflow="auto">
                 {locationData?.map((location) => (
                   <Box
-                    key={location.id}
+                    key={location.id || location.externalID}
                     onClick={() => {
                       searchProperties({
                         locationExternalIDs: location.externalID,

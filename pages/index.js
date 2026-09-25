@@ -40,7 +40,11 @@ export const Banner = ({
   </Flex>
 );
 
-export default function Home({ propertiesForSale, propertiesForRent }) {
+export default function Home({
+  propertiesForSale,
+  propertiesForRent,
+  error,
+}) {
   return (
     <div>
       <Banner
@@ -54,6 +58,11 @@ export default function Home({ propertiesForSale, propertiesForRent }) {
         imageUrl="https://bayut-production.s3.eu-central-1.amazonaws.com/image/145426814/33973352624c48628e41f2ec460faba4"
       />
       {/* Fetch the properties for rent and map over them  */}
+      {error && (
+        <Text color="gray.600" px="10">
+          {error}
+        </Text>
+      )}
       <Flex flexWrap="wrap">
         {propertiesForRent.map((property) => (
           <Property property={property} key={property.id} />
@@ -89,8 +98,18 @@ export async function getStaticProps() {
 
   return {
     props: {
-      propertiesForSale: propertyForSale?.hits,
-      propertiesForRent: propertyForRent?.hits,
+      propertiesForSale:
+        propertyForSale.ok && Array.isArray(propertyForSale.data?.hits)
+          ? propertyForSale.data.hits
+          : [],
+      propertiesForRent:
+        propertyForRent.ok && Array.isArray(propertyForRent.data?.hits)
+          ? propertyForRent.data.hits
+          : [],
+      error: propertyForSale.ok && propertyForRent.ok
+        ? null
+        : "Properties are temporarily unavailable. Please try again.",
     },
+    revalidate: 300,
   };
 }
