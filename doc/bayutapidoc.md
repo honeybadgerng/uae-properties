@@ -162,7 +162,13 @@ Get this from /search-property response (externalID field)
 Example: 13495633
 
 7. GET
-/property/search
+/search-property
+
+Verified live endpoint on `bayut16.p.rapidapi.com`: `/search-property`.
+The request `GET /search-property?has_360_tour=true&purpose=for-rent` was
+verified to return property data under `data.properties`. This verified path
+differs from the previously documented `/property/search` path; use the
+verified path for property search.
 Query Parameters
 
 sort_order
@@ -558,7 +564,6 @@ String. - Location external ID
 Get from /autocomplete endpoint (externalID field)
 Example: 5001 (Dubai)
 Example: 1 for whole of dubai, 3 for whole of Abu Dhabi
-
 
 
 

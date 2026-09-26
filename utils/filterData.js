@@ -57,9 +57,7 @@ export const filterData = [
       { name: "Lowest Price", value: "price-asc" },
       { name: "Highest Price", value: "price-des" },
       { name: "Newest", value: "date-asc" },
-      { name: "Oldest", value: "date-desc" },
       { name: "Verified", value: "verified-score" },
-      { name: "City Level Score", value: "city-level-score" },
     ],
     placeholder: "Sort",
     queryName: "sort",
@@ -144,6 +142,7 @@ export const getFilterValues = (filterValues) => {
     areaMax,
     roomsMin,
     bathsMin,
+    furnishingStatus,
     sort,
     locationExternalIDs,
   } = filterValues;
@@ -176,6 +175,10 @@ export const getFilterValues = (filterValues) => {
     {
       name: "bathsMin",
       value: bathsMin,
+    },
+    {
+      name: "furnishingStatus",
+      value: furnishingStatus,
     },
     {
       name: "sort",

@@ -50,7 +50,7 @@ const PropertyDetails = ({
         <ImageScrollbar data={photos} />
       )}
       <Box w="full" p="6">
-        <Flex paddingTop="2" alignItems="center">
+        <Flex paddingTop="2" alignItems="center" flexWrap="wrap" gap="2">
           <Text fontWeight="bold" fontSize="lg">
             Property ID: {externalID}
           </Text>
@@ -81,7 +81,7 @@ const PropertyDetails = ({
         <Text fontSize="lg" marginBottom="2" fontWeight="bold">
           {title || "Property title unavailable"}
         </Text>
-        <Text lineHeight="2" color="gray.600">
+        <Text lineHeight="2" color="gray.600" overflowWrap="anywhere">
           {description || "Property description unavailable."}
         </Text>
       </Box>
@@ -92,7 +92,7 @@ const PropertyDetails = ({
       >
         <Flex
           justifyContent="space-between"
-          w="400px"
+          w={["100%", "400px"]}
           borderBottom="1px"
           borderColor="gray.100"
           p="3"
@@ -102,7 +102,7 @@ const PropertyDetails = ({
         </Flex>
         <Flex
           justifyContent="space-between"
-          w="400px"
+          w={["100%", "400px"]}
           borderBottom="1px"
           borderColor="gray.100"
           p="3"
@@ -113,7 +113,7 @@ const PropertyDetails = ({
         {furnishingStatus && (
           <Flex
             justifyContent="space-between"
-            w="400px"
+            w={["100%", "400px"]}
             borderBottom="1px"
             borderColor="gray.100"
             p="3"
@@ -152,7 +152,7 @@ const PropertyDetails = ({
         Contact actions are temporarily unavailable. Please use the property ID
         when contacting us through the configured internal channel.
       </Box>
-      <Flex justify="space-between" mt="4">
+      <Flex justify="space-between" mt="4" flexWrap="wrap" gap="2">
         <Button colorScheme="green" isDisabled>
           WhatsApp
         </Button>

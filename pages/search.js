@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
-import { Flex, Box, Text, Icon } from "@chakra-ui/react";
+import { Flex, Box, Text, Icon, Button } from "@chakra-ui/react";
 import { BsFilter } from "react-icons/bs";
 
 import Property from "../components/Property";
@@ -13,7 +13,9 @@ import {
 } from "../utils/fetchApi";
 import noresult from "../assets/images/noresult.svg";
 
-const Search = ({ properties, error }) => {
+const PAGE_SIZE = 24;
+
+const Search = ({ properties, error, purpose, page }) => {
   const [searchFilters, setSearchFilters] = useState(false);
   const router = useRouter();
 
@@ -36,7 +38,7 @@ const Search = ({ properties, error }) => {
       </Flex>
       {searchFilters && <SearchFilters />}
       <Text fontSize="2xl" p="4" fontWeight="bold">
-        Properties {router.query.purpose}
+        Properties {purpose}
       </Text>
       {error && (
         <Text color="gray.600" px="4">
@@ -44,11 +46,14 @@ const Search = ({ properties, error }) => {
         </Text>
       )}
       <Flex flexWrap="wrap">
-        {properties.map((property) => (
-          <Property property={property} key={property.id} />
+        {properties.map((property, index) => (
+          <Property
+            property={property}
+            key={property.externalID || property.id || index}
+          />
         ))}
       </Flex>
-      {properties.length === 0 && (
+      {!error && properties.length === 0 && (
         <Flex
           justifyContent="center"
           alignItems="center"
@@ -58,8 +63,35 @@ const Search = ({ properties, error }) => {
         >
           <Image src={noresult} alt="No properties found" width={300} height={200} />
           <Text fontSize="xl" marginTop="3">
-            No Result Found.
+            No properties match your search.
           </Text>
+        </Flex>
+      )}
+      {!error && (
+        <Flex justifyContent="center" alignItems="center" gap="3" p="4">
+          <Button
+            isDisabled={page <= 1}
+            onClick={() =>
+              router.push({
+                pathname: router.pathname,
+                query: { ...router.query, page: String(page - 1) },
+              })
+            }
+          >
+            Previous
+          </Button>
+          <Text>Page {page}</Text>
+          <Button
+            isDisabled={properties.length < PAGE_SIZE}
+            onClick={() =>
+              router.push({
+                pathname: router.pathname,
+                query: { ...router.query, page: String(page + 1) },
+              })
+            }
+          >
+            Next
+          </Button>
         </Flex>
       )}
     </Box>
@@ -67,7 +99,12 @@ const Search = ({ properties, error }) => {
 };
 
 export async function getServerSideProps({ query }) {
-  const purpose = query.purpose || "for-rent";
+  const purpose = Array.isArray(query.purpose)
+    ? query.purpose[0] || "for-rent"
+    : query.purpose || "for-rent";
+  const requestedPage = Array.isArray(query.page) ? query.page[0] : query.page;
+  const parsedPage = Number.parseInt(requestedPage || "1", 10);
+  const page = Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
   const rentFrequency = query.rentFrequency || "yearly";
   const minPrice = query.minPrice || "0";
   const maxPrice = query.maxPrice || "1000000";
@@ -80,7 +117,7 @@ export async function getServerSideProps({ query }) {
 
   const params = new URLSearchParams({
     purpose,
-    page: "1",
+    page: String(page),
     price_min: minPrice,
     price_max: maxPrice,
     area_max: areaMax,
@@ -111,6 +148,11 @@ export async function getServerSideProps({ query }) {
     params.set("baths", bathsMin);
   }
 
+  const furnishingStatus = query.furnishingStatus;
+  if (furnishingStatus === "furnished" || furnishingStatus === "unfurnished") {
+    params.set("is_furnished", furnishingStatus);
+  }
+
   if (purpose === "for-rent") {
     params.set("rent_frequency", rentFrequency);
   }
@@ -119,7 +161,6 @@ export async function getServerSideProps({ query }) {
     "price-asc": "lowest_price",
     "price-des": "highest_price",
     "date-asc": "latest",
-    "date-desc": "popular",
     "verified-score": "verified",
   }[sort];
 
@@ -136,6 +177,8 @@ export async function getServerSideProps({ query }) {
     props: {
       properties: data.ok ? normalizeProperties(data.data) : [],
       error: data.ok ? null : data.error,
+      purpose,
+      page,
     },
   };
 }
