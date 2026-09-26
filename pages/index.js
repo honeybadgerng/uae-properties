@@ -47,7 +47,8 @@ export const Banner = ({
 export default function Home({
   propertiesForSale,
   propertiesForRent,
-  error,
+  saleError,
+  rentError,
 }) {
   return (
     <div>
@@ -62,16 +63,24 @@ export default function Home({
         imageUrl="https://bayut-production.s3.eu-central-1.amazonaws.com/image/145426814/33973352624c48628e41f2ec460faba4"
       />
       {/* Fetch the properties for rent and map over them  */}
-      {error && (
+      {rentError && (
         <Text color="gray.600" px="10">
-          {error}
+          {rentError}
         </Text>
       )}
       <Flex flexWrap="wrap">
-        {propertiesForRent.map((property) => (
-          <Property property={property} key={property.id} />
+        {propertiesForRent.map((property, index) => (
+          <Property
+            property={property}
+            key={property.externalID || property.id || index}
+          />
         ))}
       </Flex>
+      {!rentError && propertiesForRent.length === 0 && (
+        <Text color="gray.600" px="10">
+          No rental properties are currently available.
+        </Text>
+      )}
       <Banner
         purpose="BUY A HOME"
         title1=" Find, Buy & Own Your"
@@ -83,11 +92,24 @@ export default function Home({
         imageUrl="https://bayut-production.s3.eu-central-1.amazonaws.com/image/110993385/6a070e8e1bae4f7d8c1429bc303d2008"
       />
       {/* Fetch the properties for sale and map over them  */}
+      {saleError && (
+        <Text color="gray.600" px="10">
+          {saleError}
+        </Text>
+      )}
       <Flex flexWrap="wrap">
-        {propertiesForSale.map((property) => (
-          <Property property={property} key={property.id} />
+        {propertiesForSale.map((property, index) => (
+          <Property
+            property={property}
+            key={property.externalID || property.id || index}
+          />
         ))}
       </Flex>
+      {!saleError && propertiesForSale.length === 0 && (
+        <Text color="gray.600" px="10">
+          No sale properties are currently available.
+        </Text>
+      )}
     </div>
   );
 }
@@ -105,16 +127,11 @@ export async function getStaticProps() {
   return {
     props: {
       propertiesForSale:
-        propertyForSale.ok && Array.isArray(propertyForSale.data?.hits)
-          ? normalizeProperties(propertyForSale.data)
-          : [],
+        propertyForSale.ok ? normalizeProperties(propertyForSale.data) : [],
       propertiesForRent:
-        propertyForRent.ok && Array.isArray(propertyForRent.data?.hits)
-          ? normalizeProperties(propertyForRent.data)
-          : [],
-      error: propertyForSale.ok && propertyForRent.ok
-        ? null
-        : "Properties are temporarily unavailable. Please try again.",
+        propertyForRent.ok ? normalizeProperties(propertyForRent.data) : [],
+      saleError: propertyForSale.ok ? null : propertyForSale.error,
+      rentError: propertyForRent.ok ? null : propertyForRent.error,
     },
     revalidate: 300,
   };

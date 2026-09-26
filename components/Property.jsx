@@ -9,8 +9,8 @@ import millify from "millify";
 
 import DefaultImage from "../assets/images/house.jpg";
 
-const Property = ({
-  property: {
+const Property = ({ property }) => {
+  const {
     coverPhoto,
     price,
     rentFrequency,
@@ -21,23 +21,26 @@ const Property = ({
     agency,
     isVerified,
     externalID,
-  },
-}) => (
-  <Link href={externalID ? `/property/${externalID}` : "#"} passHref>
+  } = property;
+  const propertyId = externalID || property.id;
+
+  const card = (
     <Flex
       flexWrap="wrap"
-      w="420px"
+      w={["100%", "420px"]}
+      maxW="100%"
       p="5"
       paddingTop="0px"
       justifyContent="flex-start"
-      cursor="pointer"
+      cursor={propertyId ? "pointer" : "default"}
     >
-      <Box>
+      <Box w="full" maxW="100%">
         <Image
           alt={title || "Property"}
           src={coverPhoto ? coverPhoto.url : DefaultImage}
           width={400}
           height={260}
+          style={{ width: "100%", height: "auto" }}
         />
       </Box>
       <Box w="full">
@@ -75,7 +78,15 @@ const Property = ({
         </Text>
       </Box>
     </Flex>
-  </Link>
-);
+  );
+
+  return propertyId ? (
+    <Link href={`/property/${propertyId}`} passHref>
+      {card}
+    </Link>
+  ) : (
+    card
+  );
+};
 
 export default Property;

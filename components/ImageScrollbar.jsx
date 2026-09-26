@@ -44,12 +44,14 @@ export default function ImageSrollbar({ data }) {
     <ScrollMenu
       LeftArrow={LeftArrow}
       RightArrow={RightArrow}
-      style={{ overflow: "hidden" }}
+      style={{ overflow: "hidden", width: "100%" }}
     >
       {images.map((item) => (
         <Box
           key={item.id}
-          width="910px"
+          width="100%"
+          maxW="910px"
+          flexShrink={0}
           itemId={item.id}
           overflow="hidden"
           p="1"
@@ -62,6 +64,7 @@ export default function ImageSrollbar({ data }) {
             width={1000}
             height={500}
             sizes="(max-width: 500px) 100px, (max-width: 1023px) 400px, 1000px"
+            style={{ width: "100%", height: "auto" }}
           />
         </Box>
       ))}

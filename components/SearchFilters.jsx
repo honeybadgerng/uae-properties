@@ -26,7 +26,7 @@ export default function SearchFilters() {
 
   const searchProperties = (filterValues) => {
     const path = router.pathname;
-    const { query } = router;
+    const query = { ...router.query, page: "1" };
 
     const values = getFilterValues(filterValues);
 
@@ -107,7 +107,8 @@ export default function SearchFilters() {
             <Input
               placeholder="Type Here"
               value={searchTerm}
-              w="300px"
+              w={["100%", "300px"]}
+              maxW="100%"
               focusBorderColor="gray.300"
               onChange={(e) => setSearchTerm(e.target.value)}
             />
